@@ -51,7 +51,7 @@ public class Peticion {
 	public void save(boolean tipo) {
 		Connector con = new Connector();
 		con.connect();
-		con.guardarPeticion(this,tipo);
+		con.guardarPeticion(this, tipo);
 		con.close();
 
 	}

@@ -5,96 +5,82 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.security.KeyFactory;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.RSAPublicKeySpec;
-import java.util.Date;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignatureException;
 
 import javax.net.SocketFactory;
 import javax.swing.JOptionPane;
 
 public class Client {
-	// Constructor que abre una conexión Socket para enviar mensaje/MAC al
-	// servidor
-	public Client() throws NoSuchAlgorithmException {
+	public Client() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		try {
 			SocketFactory socketFactory = (SocketFactory) SocketFactory.getDefault();
-			Socket socket = (Socket) socketFactory.createSocket("localhost", 7070);
-			// Crea un PrintWriter para enviar mensaje/MAC al servidor
-			PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-			//String userName = JOptionPane.showInputDialog(null, "Introduzca su mensaje:");
-			// Envío del mensaje al servidor
+			Socket socket = (Socket) socketFactory.createSocket("127.0.0.1", 7070);
 			
+			PrintWriter output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 			
 			
 			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
 			kpg.initialize(1024);
-			KeyFactory fact = KeyFactory.getInstance("RSA");
 			KeyPair kp = kpg.generateKeyPair();
-			//RSAPublicKeySpec pub = fact.getKeySpec(kp.getPublic(),RSAPublicKeySpec.class);
 
-			System.out.println("Clave pública: " + kp.getPublic());
+			System.out.println("Clave p�blica: " + kp.getPublic());
 			System.out.println("Clave privada: " + kp.getPrivate().toString());
 			
 			
-			String peticion = "123 Camas";
-			String fecha = String.valueOf((new Date()).getTime());
 			
-			String clavePublica = "clave publica";
-			String idCliente = "1";
-			String firma = "firma del mensaje"; // TODO FIRMAR MENSAJE
+			String fecha = "20/05/2022";
 			
-//			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-//
-//			kpg.initialize(1024);
-//			KeyPair kp = kpg.generateKeyPair();
+			Signature dsa = Signature.getInstance("RSA");
+			
+			PrivateKey clavepriv= kp.getPrivate();
+ 			dsa.initSign(clavepriv);
+			String mensaje = "123 Camas, 4 Sillas, 20 Sillones, 10 Mesas";
+ 			dsa.update(mensaje.getBytes());
+ 			byte[] firma = dsa.sign(); // MENSAJE FIRMADO
+ 			
+			String idCliente = "53";
 			
 
 			
 			
-			
-			output.println(peticion);
+			output.println(mensaje);
 			output.println(fecha);
-			output.println(clavePublica);
 			output.println(idCliente);
 			output.println(firma);
 			
-			
-			output.println(kp.getPublic());
-			
-
-			
-			
-			// Importante para que el mensaje se envíe
 			output.flush();
 			
 			
 			
-			// Crea un objeto BufferedReader para leer la respuesta del servidor
+			
 			BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			// Lee la respuesta del servidor
+			
 			String respuesta = input.readLine();
-			// Muestra la respuesta al cliente
+			
 			JOptionPane.showMessageDialog(null, respuesta);
-			// Se cierra la conexion
+			
 			output.close();
 			input.close();
 			socket.close();
-		} // end try
+		} 
 		catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
 
-		// Salida de la aplicacion
+		
 		finally {
 			System.exit(0);
 		}
 
 	}
 
-	public static void main(String args[]) throws NoSuchAlgorithmException {
+	public static void main(String args[]) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		new Client();
 	}
 }

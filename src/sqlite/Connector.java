@@ -11,22 +11,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import servidor.Server;
-
 public class Connector {
 
-	String url = "/media/javi/11a18e3a-ce2d-49e3-aa0a-2e2255cc22841/SSII/PAI5/Workspace/MoviSEC/src/sqlite/BD-MOVISEC";
+	String url = "../src/sqlite/BD-MOBIFIRMA";
 	Connection connect;
 
 	public void connect() {
 		try {
 			connect = DriverManager.getConnection("jdbc:sqlite:" + url);
-			if (connect != null) {
-				//System.out.println("Conectado");
-			}
-		} catch (SQLException ex) {
-			//System.err.println("No se ha podido conectar a la base de datos\n"
-			//		+ ex.getMessage());
+			} catch (SQLException ex) {
+			System.err.println("No se ha conectado a la base de datos\n");
 		}
 	}
 
@@ -66,7 +60,7 @@ public class Connector {
 	public void guardarLog(Logs log) {
 		try {
 			PreparedStatement st = connect
-					.prepareStatement("insert into registros (mes, anio, porcentaje, tendencia) values (?,?,?,?)");
+					.prepareStatement("insert into logs (mes, year, porcentaje, tendencia) values (?,?,?,?)");
 			st.setString(1, String.valueOf(log.getMes()));
 			st.setString(2, String.valueOf(log.getYear()));
 			st.setString(3, String.valueOf(log.getPorcentaje()));
@@ -88,7 +82,9 @@ public class Connector {
 		int mes = r.getInt(2);
 		int anio = r.getInt(3);
 
+		@SuppressWarnings("deprecation")
 		int mesActual = fecha.getMonth() + 1;
+		@SuppressWarnings("deprecation")
 		int anioActual = fecha.getYear() + 1900;
 
 		if (((mesActual > mes) && (anioActual == anio)) || (anioActual > anio))
@@ -102,7 +98,7 @@ public class Connector {
 		if (comprobarFechaLogs()) {
 			Date fecha = new Date();
 			PreparedStatement st = connect
-					.prepareStatement("select * from registros");
+					.prepareStatement("select * from logs");
 			ResultSet r = st.executeQuery();
 
 			listaLogs = new ArrayList<>();
@@ -151,7 +147,9 @@ public class Connector {
 
 			}
 
+			
 			int mesActual = fecha.getMonth() + 1;
+			
 			int anioActual = fecha.getYear() + 1900;
 
 			Logs registro = new Logs(cont + 1, mesActual, anioActual,
@@ -165,10 +163,6 @@ public class Connector {
 
 	}
 
-	public boolean comprobarPeticion() {
-		return false;
-	}
-
 	public static void main(String args[]) throws Exception {
 		Connector con = new Connector();
 		con.connect();
@@ -177,34 +171,4 @@ public class Connector {
 		con.generarLog();
 
 	}
-
-	public boolean comprobarClavePublica(String idCliente,
-			String clavePublicaRecibida) {
-		boolean result = false;
-		PreparedStatement st;
-		try {
-			st = connect
-					.prepareStatement("select * from clientes where clienteID=? and Clave='?'");
-
-			st.setString(1,idCliente);
-			st.setString(2, clavePublicaRecibida);
-			st.execute();
-
-			
-			ResultSet r = st.executeQuery();
-			
-			Integer id=r.getInt(1);
-			
-			if(id!=null)
-				result=true;
-			
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-		return result;
-	}
-
 }
